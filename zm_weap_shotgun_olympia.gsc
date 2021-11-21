@@ -33,14 +33,12 @@ function registerClientfields(){
 function upgradeWatcher(){
 	while(true){
 		self waittill("pap_taken"); //notify set when player picks gun out of pap
-		IPrintLnBold("pap_taken");
 		wait(0.05);
 		self waittill("weapon_change_complete", wpn);
-		IPrintLnBold(wpn.name);
 		if(wpn.name == HADES){
-			IPrintLnBold("AAT");
-			//INSTEAD OF GIVING BLAST FURNACE, JUST CALLBACK ON DAMAGE AND DO THE BEHAVIOUR
+			//Callback on damage if Hades received from PAP
 			zm_spawner::register_zombie_damage_callback(&zombieDragonsBreath);
+			break; //end the while
 		}
 	}
 }
@@ -56,7 +54,6 @@ function zombieDragonsBreath(str_mod, str_hit_location, v_hit_origin, e_attacker
 
 		//fire FX
 		if(IsVehicle(self)){
-			IPrintLnBold("isVeh");
 			self thread clientfield::increment( ZM_AAT_BLAST_FURNACE_CF_NAME_BURN_VEH );
 		}else{
 			self thread clientfield::increment( ZM_AAT_BLAST_FURNACE_CF_NAME_BURN );
@@ -65,7 +62,6 @@ function zombieDragonsBreath(str_mod, str_hit_location, v_hit_origin, e_attacker
 
 		for(i = 0; i<NUM_OF_TICKS; i++){
 			wait(TICK_RATE);
-			IPrintLnBold("burn");
 			self DoDamage(DMG_PER_TICK, self.origin, e_attacker, undefined, "none", "MOD_BURNED", 0, w_weapon);
 			
 		}
