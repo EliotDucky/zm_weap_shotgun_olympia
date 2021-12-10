@@ -6,6 +6,7 @@
 
 #using scripts\zm\_zm;
 #using scripts\zm\_zm_powerups;
+#using scripts\zm\_zm_score;
 #using scripts\zm\_zm_spawner;
 #using scripts\zm\aats\_zm_aat_blast_furnace;
 
@@ -13,8 +14,10 @@
 #insert scripts\shared\aat_shared.gsh;
 #insert scripts\shared\aat_zm.gsh;
 #insert scripts\shared\version.gsh;
-#insert scripts\zm\aats\_zm_aat_blast_furnace.gsh;
 
+#insert scripts\shared\archetype_shared\archetype_shared.gsh;
+
+#insert scripts\zm\aats\_zm_aat_blast_furnace.gsh;
 #insert scripts\zm\weapons\zm_weap_shotgun_olympia\zm_weap_shotgun_olympia.gsh;
 
 REGISTER_SYSTEM("zm_weap_shotgun_olympia", &__init__, undefined)
@@ -45,10 +48,13 @@ function upgradeWatcher(){
 
 //Call On: damaged zombie
 function zombieDragonsBreath(str_mod, str_hit_location, v_hit_origin, e_attacker, n_amount, w_weapon, direction_vec, tagName, modelName, partName, dFlags, inflictor, chargeLevel){
+	is_hades = false; //should give points if returning false
 	self endon("death");
 	// if we have instakill, apply that
 	self thread zm_powerups::check_for_instakill( e_attacker, str_mod, str_hit_location );
 	if(w_weapon.name == HADES && !IS_TRUE(self.dragons_breath)){
+		is_hades = true;
+
 		//only run if not already on fire
 		self.dragons_breath = true;
 
@@ -62,10 +68,14 @@ function zombieDragonsBreath(str_mod, str_hit_location, v_hit_origin, e_attacker
 
 		for(i = 0; i<NUM_OF_TICKS; i++){
 			wait(TICK_RATE);
-			self DoDamage(DMG_PER_TICK, self.origin, e_attacker, undefined, "none", "MOD_BURNED", 0, w_weapon);
-			
+			self DoDamage(DMG_PER_TICK, self.origin, e_attacker, undefined, "torso_lower", "MOD_BURNED", 0, w_weapon);
+			if(IsPlayer(e_attacker)){
+				is_dog = self.archetype == ARCHETYPE_ZOMBIE_DOG;
+				e_attacker zm_score::player_add_points("damage", "MOD_BURNED", "torso_lower", false, level.zombie_team, w_weapon);
+			}
 		}
 		//reset once this burn is over
 		self.dragons_breath = false;
 	}
+	return is_hades;
 }
